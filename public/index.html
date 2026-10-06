@@ -232,7 +232,9 @@
     <label>Avoir Labo sur l'écran d'accueil</label>
     <div class="ingredients-sub" style="font-size:0.85rem; color:var(--text-dim); margin-bottom:10px;">Une fois installée, elle s'ouvre comme une vraie appli, en plein écran, sans barre de navigateur.</div>
     <button type="button" class="btn-outline" id="installBtn" style="display:none; border-radius:10px; cursor:pointer; width:100%;">📲 Installer l'appli</button>
+    <div class="status" id="installStatus"></div>
     <div id="installIOSHint" style="display:none; font-size:0.85rem; color:var(--text-dim);">Sur iPhone/iPad : touche l'icône <b>Partager</b> en bas du navigateur, puis <b>"Sur l'écran d'accueil"</b>.</div>
+    <div style="font-size:0.8rem; color:var(--text-dim); margin-top:8px;">Sur ordinateur (Chrome/Edge) : tu peux aussi utiliser l'icône d'installation directement dans la barre d'adresse (à côté de l'URL).</div>
   </div>
 
   <div class="card" id="outilsPanel" style="display:none;">
@@ -1437,11 +1439,25 @@ window.addEventListener('beforeinstallprompt', (e) => {
   document.getElementById('installBtn').style.display = 'block';
 });
 document.getElementById('installBtn').addEventListener('click', async () => {
-  if(!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  await deferredInstallPrompt.userChoice;
-  deferredInstallPrompt = null;
-  document.getElementById('installBtn').style.display = 'none';
+  const status = document.getElementById('installStatus');
+  if(!deferredInstallPrompt){
+    status.textContent = "L'installation automatique n'est pas proposée par ton navigateur en ce moment — utilise l'icône dans la barre d'adresse (voir ci-dessous).";
+    return;
+  }
+  try {
+    status.textContent = '';
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if(choice.outcome === 'accepted'){
+      status.textContent = 'Installée ! Cherche son icône sur ton écran d\'accueil ou ton bureau.';
+      document.getElementById('installBtn').style.display = 'none';
+    } else {
+      status.textContent = 'Installation annulée.';
+    }
+  } catch(e){
+    status.textContent = "L'installation a échoué — utilise l'icône dans la barre d'adresse à la place.";
+  }
 });
 const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
