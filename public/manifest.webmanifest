@@ -1,0 +1,11 @@
+{
+  "name": "Labo",
+  "short_name": "Labo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eef2f1",
+  "theme_color": "#2f7d6e",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
