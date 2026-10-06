@@ -228,13 +228,15 @@
     </div>
     <div class="status" id="backupStatus"></div>
 
-    <div style="margin:18px 0; border-top:1px solid var(--line);"></div>
-    <label>Avoir Labo sur l'écran d'accueil</label>
-    <div class="ingredients-sub" style="font-size:0.85rem; color:var(--text-dim); margin-bottom:10px;">Une fois installée, elle s'ouvre comme une vraie appli, en plein écran, sans barre de navigateur.</div>
-    <button type="button" class="btn-outline" id="installBtn" style="display:none; border-radius:10px; cursor:pointer; width:100%;">📲 Installer l'appli</button>
-    <div class="status" id="installStatus"></div>
-    <div id="installIOSHint" style="display:none; font-size:0.85rem; color:var(--text-dim);">Sur iPhone/iPad : touche l'icône <b>Partager</b> en bas du navigateur, puis <b>"Sur l'écran d'accueil"</b>.</div>
-    <div style="font-size:0.8rem; color:var(--text-dim); margin-top:8px;">Sur ordinateur (Chrome/Edge) : tu peux aussi utiliser l'icône d'installation directement dans la barre d'adresse (à côté de l'URL).</div>
+    <div id="installSection">
+      <div style="margin:18px 0; border-top:1px solid var(--line);"></div>
+      <label>Avoir Labo sur l'écran d'accueil</label>
+      <div class="ingredients-sub" style="font-size:0.85rem; color:var(--text-dim); margin-bottom:10px;">Une fois installée, elle s'ouvre comme une vraie appli, en plein écran, sans barre de navigateur.</div>
+      <button type="button" class="btn-outline" id="installBtn" style="display:none; border-radius:10px; cursor:pointer; width:100%;">📲 Installer l'appli</button>
+      <div class="status" id="installStatus"></div>
+      <div id="installIOSHint" style="display:none; font-size:0.85rem; color:var(--text-dim);">Sur iPhone/iPad : touche l'icône <b>Partager</b> en bas du navigateur, puis <b>"Sur l'écran d'accueil"</b>.</div>
+      <div style="font-size:0.8rem; color:var(--text-dim); margin-top:8px;">Sur ordinateur (Chrome/Edge) : tu peux aussi utiliser l'icône d'installation directement dans la barre d'adresse (à côté de l'URL).</div>
+    </div>
   </div>
 
   <div class="card" id="outilsPanel" style="display:none;">
@@ -1461,7 +1463,9 @@ document.getElementById('installBtn').addEventListener('click', async () => {
 });
 const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-if(isIOSDevice && !isStandalone){
+if(isStandalone){
+  document.getElementById('installSection').style.display = 'none';
+} else if(isIOSDevice){
   document.getElementById('installIOSHint').style.display = 'block';
 }
 
