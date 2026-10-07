@@ -245,6 +245,7 @@
       <button type="button" class="sub-tab" data-sub="conversion">Conversions</button>
       <button type="button" class="sub-tab" data-sub="molarite">Molarité</button>
       <button type="button" class="sub-tab" data-sub="tampon">Tampon (IA)</button>
+      <button type="button" class="sub-tab" data-sub="pipette">Pipette</button>
     </div>
 
     <div id="dilutionTool">
@@ -325,6 +326,17 @@
       <div class="result-box" id="tamponResult"></div>
       <div class="result-actions" id="tamponActions"><button data-print="tamponResult" data-title="Recette de tampon">🖨️ Imprimer</button><button data-download="tamponResult" data-filename="tampon" data-title="Recette de tampon">💾 Télécharger</button></div>
       <div class="status" style="margin-top:14px; font-size:0.78rem;">Recette générée par IA à titre indicatif — vérifie toujours les calculs critiques.</div>
+    </div>
+
+    <div id="pipetteTool" style="display:none;">
+      <label>Volume à prélever (µL)</label>
+      <input type="number" id="pipVolume" placeholder="ex : 35">
+      <button class="btn" id="pipCalcBtn">Quelle pipette ?</button>
+      <div class="status" id="pipStatus"></div>
+      <div class="result-box big" id="pipResult"></div>
+      <div class="status" id="pipAlt" style="margin-top:10px;"></div>
+      <div class="result-actions" id="pipActions"><button data-print="pipResult" data-title="Choix de pipette">🖨️ Imprimer</button><button data-download="pipResult" data-filename="pipette" data-title="Choix de pipette">💾 Télécharger</button></div>
+      <div class="status" style="margin-top:14px; font-size:0.78rem;">Jeu Gilson standard : P2 (0,2-2 µL), P10 (1-10 µL), P20 (2-20 µL), P100 (20-100 µL), P200 (20-200 µL), P1000 (100-1000 µL).</div>
     </div>
 
     <div class="history-toggle"><button id="outilsHistToggle">Voir l'historique</button></div>
@@ -607,6 +619,7 @@ const dilutionTool = document.getElementById('dilutionTool');
 const conversionTool = document.getElementById('conversionTool');
 const molariteTool = document.getElementById('molariteTool');
 const tamponTool = document.getElementById('tamponTool');
+const pipetteTool = document.getElementById('pipetteTool');
 outilsSubTabs.addEventListener('click', (e) => {
   const btn = e.target.closest('.sub-tab');
   if(!btn) return;
@@ -616,6 +629,46 @@ outilsSubTabs.addEventListener('click', (e) => {
   conversionTool.style.display = sub === 'conversion' ? 'block' : 'none';
   molariteTool.style.display = sub === 'molarite' ? 'block' : 'none';
   tamponTool.style.display = sub === 'tampon' ? 'block' : 'none';
+  pipetteTool.style.display = sub === 'pipette' ? 'block' : 'none';
+});
+
+const GILSON_PIPETTES = [
+  { name: 'P2', min: 0.2, max: 2 },
+  { name: 'P10', min: 1, max: 10 },
+  { name: 'P20', min: 2, max: 20 },
+  { name: 'P100', min: 20, max: 100 },
+  { name: 'P200', min: 20, max: 200 },
+  { name: 'P1000', min: 100, max: 1000 }
+];
+document.getElementById('pipCalcBtn').addEventListener('click', () => {
+  const status = document.getElementById('pipStatus');
+  const out = document.getElementById('pipResult');
+  const alt = document.getElementById('pipAlt');
+  const vol = parseFloat(document.getElementById('pipVolume').value);
+  out.classList.remove('show');
+  alt.textContent = '';
+  if(!vol || vol <= 0){
+    status.textContent = 'Indique un volume en µL.';
+    return;
+  }
+  const fits = GILSON_PIPETTES.filter(p => vol >= p.min && vol <= p.max).sort((a, b) => a.max - b.max);
+  if(fits.length === 0){
+    status.textContent = '';
+    out.textContent = vol < 0.2 ? 'Volume trop petit pour ce jeu de pipettes.' : 'Volume trop grand — utilise une pipette multicanal ou une éprouvette.';
+    out.classList.add('show');
+    showResultActions('pipActions');
+    logOutil({ id: String(Date.now()), type: 'Pipette', text: vol + ' µL → hors plage du jeu Gilson standard', ts: Date.now() });
+    return;
+  }
+  status.textContent = '';
+  const best = fits[0];
+  out.textContent = best.name + ' (' + best.min + '-' + best.max + ' µL)';
+  out.classList.add('show');
+  showResultActions('pipActions');
+  if(fits.length > 1){
+    alt.textContent = 'Aussi possible : ' + fits.slice(1).map(p => p.name).join(', ');
+  }
+  logOutil({ id: String(Date.now()), type: 'Pipette', text: vol + ' µL  →  ' + best.name, ts: Date.now() });
 });
 
 function logOutil(entry){
